@@ -18,7 +18,7 @@ jobs:
     - name: Run Laravel setup and tests on EC2
       run: |
         ssh -o StrictHostKeyChecking=no ${{ secrets.EC2_USER }}@${{ secrets.EC2_HOST }} << 'EOF'
-          cd /path/to/your/project/on/ec2
+          cd /var/www/laraveldemo
 
           # Copy .env if it doesn't exist
           php -r "file_exists('.env') || copy('.env.example', '.env');"

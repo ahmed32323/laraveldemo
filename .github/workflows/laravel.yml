@@ -13,9 +13,11 @@ jobs:
 
     # Set up SSH to EC2 instance using the private key from secrets
     - name: Set up SSH to EC2
-      uses: webfactory/ssh-agent@v0.5.3
+      uses: shimataro/ssh-key-action@v2
       with:
-        ssh-private-key: ${{ secrets.EC2_SSH_KEY }}
+        key: ${{ secrets.EC2_SSH_KEY }}
+        passphrase: ${{ secrets.EC2_SSH_PASSPHRASE }}
+
 
     # Run Laravel setup and tests on EC2 instance
     - name: Run Laravel setup and tests on EC2

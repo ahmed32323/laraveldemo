@@ -1,4 +1,4 @@
-name: Laravel
+name: Laravel on EC2
 
 on: [push]
 
@@ -7,18 +7,32 @@ jobs:
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v1
-    - name: Copy .env
-      run: php -r "file_exists('.env') || copy('.env.example', '.env');"
-    - name: Install Dependencies
-      run: composer install -q --no-ansi --no-interaction --no-scripts --no-suggest --no-progress --prefer-dist
-    - name: Generate key
-      run: php artisan key:generate
-    - name: Create Database
+
+    # Set up SSH to EC2 instance using the private key from secrets
+    - name: Set up SSH to EC2
+      uses: webfactory/ssh-agent@v0.5.3
+      with:
+        ssh-private-key: ${{ secrets.EC2_SSH_KEY }}
+
+    # Run Laravel commands on the EC2 instance
+    - name: Run Laravel setup and tests on EC2
       run: |
-        mkdir -p database
-        touch database/database.sqlite
-    - name: Execute tests (Unit and Feature tests) via PHPUnit
-      env:
-        DB_CONNECTION: sqlite
-        DB_DATABASE: database/database.sqlite
-      run: vendor/bin/phpunit
+        ssh -o StrictHostKeyChecking=no ${{ secrets.EC2_USER }}@${{ secrets.EC2_HOST }} << 'EOF'
+          cd /path/to/your/project/on/ec2
+
+          # Copy .env if it doesn't exist
+          php -r "file_exists('.env') || copy('.env.example', '.env');"
+
+          # Install dependencies
+          composer install -q --no-ansi --no-interaction --no-scripts --no-suggest --no-progress --prefer-dist
+
+          # Generate application key
+          php artisan key:generate
+
+          # Create database if necessary
+          mkdir -p database
+          touch database/database.sqlite
+
+          # Run the tests
+          DB_CONNECTION=sqlite DB_DATABASE=database/database.sqlite vendor/bin/phpunit
+        EOF
